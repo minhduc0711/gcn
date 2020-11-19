@@ -1,0 +1,6 @@
+dropout_proba: 0.5
+hidden_feats: 16
+in_feats: 3703
+num_classes: 6
+num_hidden_layers: 1
+weight_decay: 0.0005
