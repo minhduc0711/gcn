@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from src.data.datasets import CiteSeerDataset
+from src.data.datasets import Citeseer
 from src.models.gcn import GCN
 
 
@@ -19,19 +19,18 @@ parser.add_argument("--no-node-features", action="store_true")
 parser.add_argument("--weight-decay", type=float, default=1e-3)
 args = parser.parse_args()
 
-# TODO: fix this ugly data loading code
 train_dataloader = DataLoader(
-    CiteSeerDataset(subset="train", no_node_features=args.no_node_features),
+    Citeseer(subset="train", no_node_features=args.no_node_features),
     batch_size=1,
     collate_fn=collate_fn,
 )
 val_dataloader = DataLoader(
-    CiteSeerDataset(subset="val", no_node_features=args.no_node_features),
+    Citeseer(subset="val", no_node_features=args.no_node_features),
     batch_size=1,
     collate_fn=collate_fn,
 )
 test_dataloader = DataLoader(
-    CiteSeerDataset(subset="test", no_node_features=args.no_node_features),
+    Citeseer(subset="test", no_node_features=args.no_node_features),
     batch_size=1,
     collate_fn=collate_fn,
 )

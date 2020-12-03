@@ -81,10 +81,7 @@ class GCN(pl.LightningModule):
                 x = F.relu(x)
         return x
 
-    def training_step(self, batch, batch_idx):
-        g, feats, node_mask = batch["graph"], batch["feats"], batch["node_mask"]
-        labels = batch["graph"].ndata["label"]
-
+    def forward_pass(self, g, feats, labels, node_mask):
         logits = self(g, feats)
         logits = logits[node_mask]
         labels = labels[node_mask]
@@ -92,37 +89,27 @@ class GCN(pl.LightningModule):
         loss = self.loss_fn(logits, labels)
         class_pred = torch.argmax(logits, dim=1)
         acc = (class_pred == labels).sum() * 1.0 / labels.shape[0]
+        return loss, acc
 
+    def training_step(self, batch, batch_idx):
+        loss, acc = self.forward_pass(
+            batch["g"], batch["feats"], batch["labels"], batch["node_mask"]
+        )
         self.log("train/loss", loss)
         self.log("train/accuracy", acc)
+
         return loss
 
     def validation_step(self, batch, batch_idx):
-        g, feats, node_mask = batch["graph"], batch["feats"], batch["node_mask"]
-        labels = batch["graph"].ndata["label"]
-
-        logits = self(g, feats)
-        logits = logits[node_mask]
-        labels = labels[node_mask]
-
-        loss = self.loss_fn(logits, labels)
-        class_pred = torch.argmax(logits, dim=1)
-        acc = (class_pred == labels).sum() * 1.0 / labels.shape[0]
-
+        loss, acc = self.forward_pass(
+            batch["g"], batch["feats"], batch["labels"], batch["node_mask"]
+        )
         self.log("val/loss", loss)
         self.log("val/accuracy", acc)
 
     def test_step(self, batch, batch_idx):
-        g, feats, node_mask = batch["graph"], batch["feats"], batch["node_mask"]
-        labels = batch["graph"].ndata["label"]
-
-        logits = self(g, feats)
-        logits = logits[node_mask]
-        labels = labels[node_mask]
-
-        loss = self.loss_fn(logits, labels)
-        class_pred = torch.argmax(logits, dim=1)
-        acc = (class_pred == labels).sum() * 1.0 / labels.shape[0]
-
+        loss, acc = self.forward_pass(
+            batch["g"], batch["feats"], batch["labels"], batch["node_mask"]
+        )
         self.log("test/loss", loss)
         self.log("test/accuracy", acc)
