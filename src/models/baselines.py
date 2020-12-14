@@ -5,13 +5,14 @@ import pytorch_lightning as pl
 
 from src.eval import compute_metrics
 
+
 class DNN(pl.LightningModule):
     def __init__(self, in_feats, hidden_feats, num_classes, num_hidden_layers,
-                 learning_rate=1e-3,
+                 lr,
                  class_weights=None):
         super(DNN, self).__init__()
 
-        self.learning_rate = learning_rate
+        self.lr = lr
         self.num_classes = num_classes
 
         last_input_dim = in_feats
@@ -29,7 +30,7 @@ class DNN(pl.LightningModule):
         self.save_hyperparameters()
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
 
     def forward(self, x):
         return self.layers(x)

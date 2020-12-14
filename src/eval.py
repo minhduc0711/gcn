@@ -15,7 +15,7 @@ def compute_metrics(proba_pos, y_true, threshold=0.5):
     p, r, _ = metrics.precision_recall_curve(y_true, proba_pos)
     return {
         "precision": metrics.precision_score(y_true, y_pred),
-        "recall": metrics.recall_score(y_true, y_pred),
+        "recall": metrics.recall_score(y_true, y_pred, average='binary'),
         "f1": metrics.f1_score(y_true, y_pred),
         "auROC": metrics.roc_auc_score(y_true, proba_pos),
         "auPR": metrics.auc(r, p),

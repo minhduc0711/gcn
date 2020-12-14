@@ -138,4 +138,6 @@ dmypy.json
 cython_debug/
 
 # pytorch lightning logs
-lightning_logs/
+/lightning_logs/
+
+/data/

@@ -41,7 +41,7 @@ class YelpDataModule(pl.LightningDataModule):
 
     def __init__(self,
                  graph_path="data/YelpChi_handcrafted.mat",
-                 convert_graph_to_homo=True,
+                 homo_graph=True,
                  no_node_features=False,
                  train_size=0.2,
                  val_size=0.4):
@@ -49,7 +49,7 @@ class YelpDataModule(pl.LightningDataModule):
         self.ds_kwargs = {
             "no_node_features": no_node_features,
             "graph_path": graph_path,
-            "convert_graph_to_homo": convert_graph_to_homo,
+            "homo_graph": homo_graph,
             "train_size": train_size,
             "val_size": val_size
         }

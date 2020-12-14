@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from src.data.data_modules import YelpDataModule, CiteseerDataModule
-from src.models import GCN, DNN
+from src.models import GCN, DNN, GraphSAGE, RGCN
 
 
 parser = ap.ArgumentParser()
@@ -21,8 +21,10 @@ parser.add_argument("--num-hidden-layers", type=int, default=1)
 
 args = parser.parse_args()
 
+homo_graph = False if args.model == "rgcn" else True
 if args.dataset == "yelp":
-    dm = YelpDataModule(no_node_features=args.no_node_features)
+    dm = YelpDataModule(no_node_features=args.no_node_features,
+                        homo_graph=homo_graph)
 elif args.dataset == "citeseer":
     dm = CiteseerDataModule(no_node_features=args.no_node_features)
 else:
@@ -41,8 +43,25 @@ if args.model == "gcn":
         num_hidden_layers=args.num_hidden_layers,
         dropout_proba=args.dropout,
         class_weights=class_weights,
-        learning_rate=args.lr,
+        lr=args.lr,
         weight_decay=args.weight_decay
+    )
+elif args.model == "sage":
+    model = GraphSAGE(
+        in_feats=dm.dims[0],
+        hidden_feats=args.hidden_size,
+        num_classes=dm.num_classes,
+        class_weights=class_weights,
+        lr=args.lr,
+    )
+elif args.model == "rgcn":
+    model = RGCN(
+        in_feats=dm.dims[0],
+        hidden_feats=args.hidden_size,
+        num_classes=dm.num_classes,
+        class_weights=class_weights,
+        lr=args.lr,
+        rel_names=dm.train_ds.g.etypes
     )
 elif args.model == "dnn":
     model = DNN(
@@ -51,12 +70,13 @@ elif args.model == "dnn":
         num_classes=dm.num_classes,
         num_hidden_layers=args.num_hidden_layers,
         class_weights=class_weights,
-        learning_rate=args.lr
+        lr=args.lr
     )
+else:
+    raise ValueError(f"unknown model: {args.model}")
 
-
-es_callback = EarlyStopping(monitor="val/f1", patience=500, mode="max")
-trainer = pl.Trainer(max_epochs=1000,
+es_callback = EarlyStopping(monitor="val/f1", patience=100, mode="max")
+trainer = pl.Trainer(max_epochs=10000,
                      callbacks=[es_callback],
                      log_every_n_steps=1)
 trainer.fit(model, datamodule=dm)
