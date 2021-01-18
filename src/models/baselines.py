@@ -11,6 +11,7 @@ class DNN(pl.LightningModule):
                  lr,
                  class_weights=None):
         super(DNN, self).__init__()
+        self.save_hyperparameters()
 
         self.lr = lr
         self.num_classes = num_classes

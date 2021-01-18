@@ -14,6 +14,7 @@ class GCN(BaseGNN):
         **kwargs
     ):
         super(GCN, self).__init__(**kwargs)
+        self.save_hyperparameters()
 
         self.weight_decay = weight_decay
 

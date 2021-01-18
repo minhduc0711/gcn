@@ -9,18 +9,25 @@ from .base import BaseGNN
 
 
 class GraphSAGE(BaseGNN):
-    def __init__(self, in_feats, hidden_feats, num_classes, **kwargs):
+    def __init__(self, in_feats, hidden_feats, num_classes, num_hidden_layers,
+                 agg="mean",
+                 **kwargs):
         super().__init__(**kwargs)
-        self.conv1 = SAGEConv(
-            in_feats=in_feats, out_feats=hidden_feats, aggregator_type="mean"
-        )
-        self.conv2 = SAGEConv(
-            in_feats=hidden_feats, out_feats=num_classes, aggregator_type="mean"
-        )
+        self.save_hyperparameters()
 
-    def forward(self, graph, inputs):
-        # inputs are features of nodes
-        h = self.conv1(graph, inputs)
-        h = F.relu(h)
-        h = self.conv2(graph, h)
-        return h
+        self.layers = nn.ModuleList()
+        last_input_dim = in_feats
+        for i in range(num_hidden_layers):
+            self.layers.append(SAGEConv(
+                in_feats=last_input_dim, out_feats=hidden_feats, aggregator_type=agg,
+                activation=F.relu
+            ))
+            last_input_dim = hidden_feats
+        self.layers.append(SAGEConv(
+            in_feats=last_input_dim, out_feats=num_classes, aggregator_type=agg
+        ))
+
+    def forward(self, g, x):
+        for layer in self.layers:
+            x = layer(g, x)
+        return x

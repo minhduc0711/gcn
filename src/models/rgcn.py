@@ -7,20 +7,25 @@ from dgl.nn import GraphConv, HeteroGraphConv
 
 
 class RGCN(BaseGNN):
-    def __init__(self, in_feats, hidden_feats, num_classes, rel_names, **kwargs):
+    def __init__(self, in_feats, hidden_feats, num_classes, num_hidden_layers, rel_names, **kwargs):
         super(RGCN, self).__init__(**kwargs)
-
-        self.conv1 = HeteroGraphConv({
-            rel: GraphConv(in_feats, hidden_feats)
-            for rel in rel_names}, aggregate='mean')
-        self.conv2 = HeteroGraphConv({
-            rel: GraphConv(hidden_feats, num_classes)
-            for rel in rel_names}, aggregate='mean')
+        self.save_hyperparameters()
+        
+        self.layers = nn.ModuleList()
+        last_input_dim = in_feats
+        for i in range(num_hidden_layers):
+            self.layers.append(HeteroGraphConv(
+                {rel: GraphConv(last_input_dim, hidden_feats, activation=F.relu) for rel in rel_names},
+                aggregate='mean'
+            ))
+            last_input_dim = hidden_feats
+        self.layers.append(HeteroGraphConv(
+            {rel: GraphConv(last_input_dim, num_classes) for rel in rel_names},
+            aggregate='mean'
+        ))
 
     def forward(self, g, x):
         x = {"review": x}
-        # print(x)
-        x = self.conv1(g, x)
-        x = {k: F.relu(v) for k, v in x.items()}
-        x = self.conv2(g, x)
+        for layer in self.layers:
+            x = layer(g, x)
         return x["review"]

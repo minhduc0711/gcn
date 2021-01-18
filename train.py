@@ -1,5 +1,7 @@
 import argparse as ap
+from collections import defaultdict
 
+import numpy as np
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
@@ -12,6 +14,7 @@ parser = ap.ArgumentParser()
 parser.add_argument("--dataset", type=str, default="yelp")
 parser.add_argument("--no-node-features", action="store_true")
 
+parser.add_argument("--num-runs", type=int, default=10)
 parser.add_argument("--model", type=str, default="gcn")
 parser.add_argument("--lr", type=float, default=1e-2)
 parser.add_argument("--weight-decay", type=float, default=1e-3)
@@ -51,14 +54,17 @@ elif args.model == "sage":
         in_feats=dm.dims[0],
         hidden_feats=args.hidden_size,
         num_classes=dm.num_classes,
+        num_hidden_layers=args.num_hidden_layers,
         class_weights=class_weights,
         lr=args.lr,
+        agg="pool"
     )
 elif args.model == "rgcn":
     model = RGCN(
         in_feats=dm.dims[0],
         hidden_feats=args.hidden_size,
         num_classes=dm.num_classes,
+        num_hidden_layers=args.num_hidden_layers,
         class_weights=class_weights,
         lr=args.lr,
         rel_names=dm.train_ds.g.etypes
@@ -75,9 +81,25 @@ elif args.model == "dnn":
 else:
     raise ValueError(f"unknown model: {args.model}")
 
-es_callback = EarlyStopping(monitor="val/f1", patience=100, mode="max")
-trainer = pl.Trainer(max_epochs=10000,
-                     callbacks=[es_callback],
-                     log_every_n_steps=1)
-trainer.fit(model, datamodule=dm)
-trainer.test(model, datamodule=dm)
+result_dict = defaultdict(list)
+for _ in range(args.num_runs):
+    es_callback = EarlyStopping(monitor="val/f1", patience=300, mode="max")
+    trainer = pl.Trainer(max_epochs=10000,
+                         callbacks=[es_callback],
+                         log_every_n_steps=1)
+    trainer.fit(model, datamodule=dm)
+    d = trainer.test(model, datamodule=dm, verbose=False)[0]
+    for k in d.keys():
+        result_dict[k].append(d[k])
+
+for k, vals in result_dict.items():
+    avg = np.mean(vals)
+    std = np.std(vals)
+    print(f"{k}: {avg:.4f} \u00B1 {std:.4f}")
+
+for metric in ["precision", "recall", "f1", "auROC", "auPR"]:
+    vals = result_dict[f"test/{metric}"]
+    avg = np.mean(vals)
+    std = np.std(vals)
+    print(f"& {avg:.4f} \u00B1 {std:.4f} ", end="")
+print("\\\\")
