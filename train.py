@@ -7,7 +7,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
 from src.data.data_modules import YelpDataModule, CiteseerDataModule
-from src.models import GCN, DNN, GraphSAGE, RGCN
+from src.models import GCN, DNN, GraphSAGE, RGCN, GAT
 
 
 parser = ap.ArgumentParser()
@@ -68,6 +68,16 @@ elif args.model == "rgcn":
         class_weights=class_weights,
         lr=args.lr,
         rel_names=dm.train_ds.g.etypes
+    )
+elif args.model == "gat":
+    model = GAT(
+        in_feats=dm.dims[0],
+        hidden_feats=args.hidden_size,
+        num_classes=dm.num_classes,
+        num_hidden_layers=args.num_hidden_layers,
+        class_weights=class_weights,
+        num_heads=3,
+        attn_drop=0.5
     )
 elif args.model == "dnn":
     model = DNN(
