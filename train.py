@@ -22,6 +22,8 @@ parser.add_argument("--dropout", type=float, default=None)
 parser.add_argument("--hidden-size", type=int, default=16)
 parser.add_argument("--num-hidden-layers", type=int, default=1)
 
+parser = pl.Trainer.add_argparse_args(parser)
+
 args = parser.parse_args()
 
 homo_graph = False if args.model == "rgcn" else True
@@ -94,9 +96,10 @@ else:
 result_dict = defaultdict(list)
 for _ in range(args.num_runs):
     es_callback = EarlyStopping(monitor="val/f1", patience=300, mode="max")
-    trainer = pl.Trainer(max_epochs=10000,
-                         callbacks=[es_callback],
-                         log_every_n_steps=1)
+    trainer = pl.Trainer.from_argparse_args(args,
+                                            max_epochs=10000,
+                                            callbacks=[es_callback],
+                                            log_every_n_steps=1)
     trainer.fit(model, datamodule=dm)
     d = trainer.test(model, datamodule=dm, verbose=False)[0]
     for k in d.keys():
