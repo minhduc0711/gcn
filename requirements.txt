@@ -7,9 +7,9 @@ matplotlib
 scikit-learn
   
 -f https://download.pytorch.org/whl/torch_stable.html
-torch==1.7.0+cpu
+#torch==1.7.0+cpu
 #torch==1.7.0
 pytorch-lightning
-dgl
+dgl-cu101
 
 flake8
