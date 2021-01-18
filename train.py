@@ -6,7 +6,8 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import EarlyStopping
 
-from src.data.data_modules import YelpDataModule, CiteseerDataModule
+from src.data.data_modules import YelpDataModule, CiteseerDataModule, \
+    AmazonDataModule
 from src.models import GCN, DNN, GraphSAGE, RGCN, GAT
 
 
@@ -30,6 +31,9 @@ homo_graph = False if args.model == "rgcn" else True
 if args.dataset == "yelp":
     dm = YelpDataModule(no_node_features=args.no_node_features,
                         homo_graph=homo_graph)
+elif args.dataset == "amazon":
+    dm = AmazonDataModule(no_node_features=args.no_node_features,
+                          homo_graph=homo_graph)
 elif args.dataset == "citeseer":
     dm = CiteseerDataModule(no_node_features=args.no_node_features)
 else:

@@ -1,7 +1,7 @@
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 
-from .datasets import YelpChi, Citeseer
+from .datasets import YelpChi, Citeseer, Amazon
 
 
 def collate_fn(batch):
@@ -61,6 +61,43 @@ class YelpDataModule(pl.LightningDataModule):
             self.dims = self.train_ds.feats[0].shape
         if stage == "test" or stage is None:
             self.test_ds = YelpChi(subset="test", **self.ds_kwargs)
+            self.dims = self.test_ds.feats[0].shape
+
+    def train_dataloader(self):
+        return DataLoader(self.train_ds, batch_size=1, collate_fn=collate_fn)
+
+    def val_dataloader(self):
+        return DataLoader(self.val_ds, batch_size=1, collate_fn=collate_fn)
+
+    def test_dataloader(self):
+        return DataLoader(self.test_ds, batch_size=1, collate_fn=collate_fn)
+
+
+class AmazonDataModule(pl.LightningDataModule):
+    num_classes = 2
+
+    def __init__(self,
+                 graph_path="data/Amazon.mat",
+                 homo_graph=True,
+                 no_node_features=False,
+                 train_size=0.2,
+                 val_size=0.4):
+        super(AmazonDataModule, self).__init__()
+        self.ds_kwargs = {
+            "no_node_features": no_node_features,
+            "graph_path": graph_path,
+            "homo_graph": homo_graph,
+            "train_size": train_size,
+            "val_size": val_size
+        }
+
+    def setup(self, stage=None):
+        if stage == "fit" or stage is None:
+            self.train_ds = Amazon(subset="train", **self.ds_kwargs)
+            self.val_ds = Amazon(subset="val", **self.ds_kwargs)
+            self.dims = self.train_ds.feats[0].shape
+        if stage == "test" or stage is None:
+            self.test_ds = Amazon(subset="test", **self.ds_kwargs)
             self.dims = self.test_ds.feats[0].shape
 
     def train_dataloader(self):
