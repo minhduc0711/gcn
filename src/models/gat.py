@@ -25,14 +25,17 @@ class GAT(BaseGNN):
                 out_feats=hidden_feats,
                 num_heads=num_heads,
                 feat_drop=feat_drop,
-                attn_drop=attn_drop
+                attn_drop=attn_drop,
+                activation=F.relu
             ))
             last_input_dim = hidden_feats * num_heads
         self.layers.append(GATConv(
-            in_feats=last_input_dim, out_feats=num_classes,
+            in_feats=last_input_dim,
+            out_feats=num_classes,
             num_heads=num_heads,
             feat_drop=feat_drop,
-            attn_drop=attn_drop
+            attn_drop=attn_drop,
+            activation=F.relu
         ))
 
     def forward(self, g, x):
