@@ -44,61 +44,62 @@ classes, class_freqs = torch.unique(dm.train_ds.labels, return_counts=True)
 class_weights = len(dm.train_ds.labels) / (len(classes) * class_freqs)
 # class_weights = None
 
-if args.model == "gcn":
-    model = GCN(
-        in_feats=dm.dims[0],
-        hidden_feats=args.hidden_size,
-        num_classes=dm.num_classes,
-        num_hidden_layers=args.num_hidden_layers,
-        dropout_proba=args.dropout,
-        class_weights=class_weights,
-        lr=args.lr,
-        weight_decay=args.weight_decay
-    )
-elif args.model == "sage":
-    model = GraphSAGE(
-        in_feats=dm.dims[0],
-        hidden_feats=args.hidden_size,
-        num_classes=dm.num_classes,
-        num_hidden_layers=args.num_hidden_layers,
-        class_weights=class_weights,
-        lr=args.lr,
-        agg="pool"
-    )
-elif args.model == "rgcn":
-    model = RGCN(
-        in_feats=dm.dims[0],
-        hidden_feats=args.hidden_size,
-        num_classes=dm.num_classes,
-        num_hidden_layers=args.num_hidden_layers,
-        class_weights=class_weights,
-        lr=args.lr,
-        rel_names=dm.train_ds.g.etypes
-    )
-elif args.model == "gat":
-    model = GAT(
-        in_feats=dm.dims[0],
-        hidden_feats=args.hidden_size,
-        num_classes=dm.num_classes,
-        num_hidden_layers=args.num_hidden_layers,
-        class_weights=class_weights,
-        num_heads=3,
-        attn_drop=0.5
-    )
-elif args.model == "dnn":
-    model = DNN(
-        in_feats=dm.dims[0],
-        hidden_feats=args.hidden_size,
-        num_classes=dm.num_classes,
-        num_hidden_layers=args.num_hidden_layers,
-        class_weights=class_weights,
-        lr=args.lr
-    )
-else:
-    raise ValueError(f"unknown model: {args.model}")
-
 result_dict = defaultdict(list)
 for _ in range(args.num_runs):
+    # define model
+    if args.model == "gcn":
+        model = GCN(
+            in_feats=dm.dims[0],
+            hidden_feats=args.hidden_size,
+            num_classes=dm.num_classes,
+            num_hidden_layers=args.num_hidden_layers,
+            dropout_proba=args.dropout,
+            class_weights=class_weights,
+            lr=args.lr,
+            weight_decay=args.weight_decay
+        )
+    elif args.model == "sage":
+        model = GraphSAGE(
+            in_feats=dm.dims[0],
+            hidden_feats=args.hidden_size,
+            num_classes=dm.num_classes,
+            num_hidden_layers=args.num_hidden_layers,
+            class_weights=class_weights,
+            lr=args.lr,
+            agg="pool"
+        )
+    elif args.model == "rgcn":
+        model = RGCN(
+            in_feats=dm.dims[0],
+            hidden_feats=args.hidden_size,
+            num_classes=dm.num_classes,
+            num_hidden_layers=args.num_hidden_layers,
+            class_weights=class_weights,
+            lr=args.lr,
+            rel_names=dm.train_ds.g.etypes
+        )
+    elif args.model == "gat":
+        model = GAT(
+            in_feats=dm.dims[0],
+            hidden_feats=args.hidden_size,
+            num_classes=dm.num_classes,
+            num_hidden_layers=args.num_hidden_layers,
+            class_weights=class_weights,
+            num_heads=3,
+            attn_drop=0.5
+        )
+    elif args.model == "dnn":
+        model = DNN(
+            in_feats=dm.dims[0],
+            hidden_feats=args.hidden_size,
+            num_classes=dm.num_classes,
+            num_hidden_layers=args.num_hidden_layers,
+            class_weights=class_weights,
+            lr=args.lr
+        )
+    else:
+        raise ValueError(f"unknown model: {args.model}")
+
     es_callback = EarlyStopping(monitor="val/f1", patience=300, mode="max")
     trainer = pl.Trainer.from_argparse_args(args,
                                             max_epochs=10000,
