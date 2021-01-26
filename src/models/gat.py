@@ -26,6 +26,7 @@ class GAT(BaseGNN):
                 num_heads=num_heads,
                 feat_drop=feat_drop,
                 attn_drop=attn_drop,
+                residual=True,
                 activation=F.relu
             ))
             last_input_dim = hidden_feats * num_heads
@@ -35,6 +36,7 @@ class GAT(BaseGNN):
             num_heads=num_heads,
             feat_drop=feat_drop,
             attn_drop=attn_drop,
+            residual=True,
             activation=F.relu
         ))
 

@@ -9,6 +9,12 @@ import dgl
 from dgl.data.citation_graph import CiteseerGraphDataset
 
 
+def standardize(x):
+    mus = x.mean(dim=1, keepdim=True)
+    sigmas = x.std(dim=1, keepdim=True)
+    return (x - mus) / sigmas
+
+
 class GraphDataset(Dataset, ABC):
     g = None
 
@@ -20,7 +26,7 @@ class GraphDataset(Dataset, ABC):
         if no_node_features:
             self.feats = torch.eye(self.g.num_nodes())
         else:
-            self.feats = self.g.ndata["feat"]
+            self.feats = standardize(self.g.ndata["feat"])
         self.labels = self.g.ndata["label"]
         self.num_classes = len(self.labels.unique())
         self.node_mask = self.get_node_mask(subset)

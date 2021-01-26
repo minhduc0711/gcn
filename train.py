@@ -15,7 +15,7 @@ parser = ap.ArgumentParser()
 parser.add_argument("--dataset", type=str, default="yelp")
 parser.add_argument("--no-node-features", action="store_true")
 
-parser.add_argument("--num-runs", type=int, default=10)
+parser.add_argument("--num-runs", type=int, default=1)
 parser.add_argument("--model", type=str, default="gcn")
 parser.add_argument("--lr", type=float, default=1e-2)
 parser.add_argument("--weight-decay", type=float, default=1e-3)
